@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "379435858046",
+    "project_id": "ca-zenn-ai-hackathon",
+    "storage_bucket": "ca-zenn-ai-hackathon.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:379435858046:android:c8a1b78f6d6e3ec40a002f",
+        "android_client_info": {
+          "package_name": "com.github.phm.phm_frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgdTCz3dHWKDGEBnqm0Dfn4N012QrsmTQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
