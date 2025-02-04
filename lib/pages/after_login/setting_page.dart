@@ -13,6 +13,7 @@ class SettingPage extends StatelessWidget {
   Future<void> _onPressedLogoutButton(BuildContext context) async {
       await _firebaseService.logout();
       await sharedPreferencesManager.clear();
+      if(!context.mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -34,10 +35,15 @@ class SettingPage extends StatelessWidget {
     return Column(
       children: [
         AppBar(
-          title: Text("設定"),
-          automaticallyImplyLeading: false
+          title: Text("アカウント"),
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent
         ),
         SettingsList(
+          lightTheme: SettingsThemeData(
+            settingsListBackground: Colors.transparent,
+
+          ),
           shrinkWrap: true,
           sections: [
             SettingsSection(

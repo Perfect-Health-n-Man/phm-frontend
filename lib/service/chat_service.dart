@@ -1,4 +1,5 @@
 import 'package:phm_frontend/repository/chat.dart';
+import 'package:phm_frontend/utils/to_message.dart';
 
 import '../models/message_model.dart';
 
@@ -7,15 +8,19 @@ class ChatService {
   int page = 1;
   int nowIndex = 9;
 
-  Future<Chat> sendChat(String idToken,String message) async{
+  Future<ChatResponse> sendChat(String idToken,String message) async{
     nowIndex++;
     final res = await postChat(idToken, message);
-    final answer = res["answer"];
-    if(answer != null) {
-      return Chat(answer, "ai", DateTime.now().toString(), nowIndex);
-    } else {
-      throw Exception("Answer is null.");
+    if(res["answer"] != null || res["form"] != null) {
+      return ChatResponse.fromJson(res);
     }
+
+    throw Exception("invalid response");
+  }
+
+  Future<ChatResponse> sendFormAnswer(String idToken, List<String> forms, List<String> answers) async {
+    final answerMessage = listToMessage(answers);
+    return await sendChat(idToken, answerMessage);
   }
 
   Future<List<Chat>?> getNextHistory(String idToken) async{

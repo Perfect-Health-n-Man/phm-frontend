@@ -29,10 +29,13 @@ class _LoginPageState extends State<LoginPage> {
       sharedPreferencesManager.setLoginEmail(_emailController.text);
       final idToken = await _firebaseService.getIDToken();
       if(idToken == null) return;
+      print(idToken);
       sharedPreferencesManager.setIdToken(idToken);
       final user = await getUser(idToken);
-      if(user == null) return;
-      await sharedPreferencesManager.setUserData(user);
+      if(user != null) {
+        await sharedPreferencesManager.setUserData(user);
+        await sharedPreferencesManager.setIsFirstLogin(false);
+      }
       if(!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -87,6 +90,7 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              Image.asset('images/logo.png'),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -121,24 +125,18 @@ class _LoginPageState extends State<LoginPage> {
                 autovalidateMode: AutovalidateMode.onUserInteraction,
               ),
               const SizedBox(height: 32),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0,0,20,0),
-                child:
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      ElevatedButton(
-                          onPressed: _onPressedAccountCreationButton,
-                          child: const Text('アカウント作成へ'),
-
-                      ),
-                      ElevatedButton(
-                        onPressed: _onPressedLoginButton,
-                        child: const Text('ログイン'),
-                      ),
-                    ],
-                  )
-                ,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                      onPressed: _onPressedAccountCreationButton,
+                      child: const Text('アカウント作成へ'),
+                  ),
+                  FilledButton(
+                    onPressed: _onPressedLoginButton,
+                    child: const Text('ログイン'),
+                  ),
+                ],
               )
             ],
           ),

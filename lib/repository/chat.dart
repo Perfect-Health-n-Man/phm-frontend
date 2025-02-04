@@ -20,9 +20,13 @@ Future<Map<String, dynamic>> postChat(String idToken, String message) async {
   if(response.statusCode == 401){
     throw Exception("token-expired");
   }
+  if(response.statusCode == 500) {
+    throw Exception("server-error");
+  }
   final body = jsonDecode(response.body);
   final answer = body["answer"];
   final form = body["form"];
+  print(body);
   return {"answer": answer, "form": form};
 }
 

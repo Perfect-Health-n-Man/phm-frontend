@@ -48,7 +48,6 @@ class _AccountCreationScreenState extends State<AccountCreationPage> {
       appBar: AppBar(
         title: const Text('アカウント作成'),
         automaticallyImplyLeading: false
-
       ),
       body: Form(
         key: _formKey,
@@ -56,6 +55,7 @@ class _AccountCreationScreenState extends State<AccountCreationPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              Image.asset('images/logo.png'),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -90,23 +90,18 @@ class _AccountCreationScreenState extends State<AccountCreationPage> {
                 autovalidateMode: AutovalidateMode.onUserInteraction,
               ),
               const SizedBox(height: 32),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0,0,20,0),
-                child:
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: onPressedAccountCreationButton,
-                      child: const Text('アカウント作成'),
-                    ),
-                    ElevatedButton(
-                        onPressed: onPressedLoginPageButton,
-                        child: const Text('ログインページへ')
-                    )
-                  ],
-                )
-                ,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                      onPressed: onPressedLoginPageButton,
+                      child: const Text('ログインページへ')
+                  ),
+                  FilledButton(
+                    onPressed: onPressedAccountCreationButton,
+                    child: const Text('アカウント作成'),
+                  )
+                ],
               ),
             ],
           ),

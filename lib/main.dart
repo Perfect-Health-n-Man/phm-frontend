@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:phm_frontend/pages/after_login/home_page.dart';
-import 'package:phm_frontend/pages/before_login/initial_question_page.dart';
+import 'package:phm_frontend/pages/before_login/login_page.dart';
 import 'package:phm_frontend/service/shared_preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
@@ -27,9 +27,10 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Perfect Health\'n Man',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        colorSchemeSeed: Colors.orange,
       ),
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
@@ -40,7 +41,7 @@ class App extends StatelessWidget {
           if (snapshot.hasData) {
             return HomePage();
           }
-          return InitialQuestionPage();
+          return LoginPage();
         },
       ),);
   }

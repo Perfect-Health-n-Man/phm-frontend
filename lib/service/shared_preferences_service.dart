@@ -55,6 +55,14 @@ class SharedPreferencesManager {
     await prefs.setString("loginEmail", loginEmail);
   }
 
+  Future<void> setIsFirstLogin(bool isFirstLogin) async {
+    await prefs.setBool("isFirstLogin", isFirstLogin);
+  }
+
+  bool getIsFirstLogin() {
+    return prefs.getBool("isFirstLogin") ?? true;
+  }
+
   Future<void> clear() async {
     await prefs.clear();
   }

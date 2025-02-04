@@ -9,19 +9,17 @@ class User {
 
   User(this.email, this.name, this.goals, this.birthDay, this.height,
       this.weight, this.gender);
-
   static fromJson(Map<String, dynamic> json) {
-    final goals = json['goals'].map<String>((e)  {
-      return e as String;
-    }).toList();
+    final userInfo = json['user_info'];
+    final goals = (userInfo['goals'] as List).map((e) => e as String).toList();
     return User(
-        json['email'],
-        json['name'],
-        goals,
-        DateTime.parse(json['birthday']),
-        double.parse(json['height']),
-        double.parse(json['weight']),
-        json['gender']
+      userInfo['email'],
+      userInfo['name'],
+      goals,
+      DateTime.parse(userInfo['birthday']),
+      double.parse(userInfo['height']),
+      double.parse(userInfo['weight']),
+      userInfo['gender'],
     );
   }
 }

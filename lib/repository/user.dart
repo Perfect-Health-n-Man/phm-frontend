@@ -18,10 +18,19 @@ Future<User?> getUser(String idToken) async{
   if(response.statusCode == 401){
     throw Exception("token-expired");
   }
+
+  if(response.statusCode == 404) {
+    return null;
+  }
   final body = jsonDecode(response.body);
   if(body == null) return null;
   return User.fromJson(body);
 
+}
+
+Future<List<String>> getTasks(String idToken) {
+  // #TODO: サーバーからタスクを取得する処理を実装
+  return Future.value(["task"]);
 }
 
 Future<void> createUser(String idToken, User user) async {
