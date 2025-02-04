@@ -26,7 +26,6 @@ Future<Map<String, dynamic>> postChat(String idToken, String message) async {
   final body = jsonDecode(response.body);
   final answer = body["answer"];
   final form = body["form"];
-  print(body);
   return {"answer": answer, "form": form};
 }
 
