@@ -28,9 +28,27 @@ Future<User?> getUser(String idToken) async{
 
 }
 
-Future<List<String>> getTasks(String idToken) {
-  // #TODO: サーバーからタスクを取得する処理を実装
-  return Future.value(["task"]);
+Future<List<String>> getTasks(String idToken) async {
+  final response = await http.get(
+    Uri.parse("$backendUrl/tasks"),
+    headers: {
+      HttpHeaders.authorizationHeader: "Bearer $idToken",
+    },
+  );
+  if(response.statusCode == 401){
+    throw Exception("token-expired");
+  }
+
+  if(response.statusCode == 404) {
+    return [];
+  }
+  final body = jsonDecode(response.body);
+  final tasks = body["tasks"];
+  if(tasks == null) throw Exception("tasks not found");
+  List<String> tasksList = List<String>.from(tasks as List);
+
+  return tasksList;
+
 }
 
 Future<void> createUser(String idToken, User user) async {

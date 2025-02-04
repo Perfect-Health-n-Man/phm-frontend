@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:phm_frontend/main.dart';
+
+import '../../repository/user.dart';
 
 class TaskListPage extends StatefulWidget {
   const TaskListPage({super.key});
@@ -18,9 +21,11 @@ class _TaskListPageState extends State<TaskListPage> {
 
   Future<void> _loadTasks() async {
     // TODO: サーバーからタスクを取得する処理を実装
-    if(!mounted) return;
+    final idToken = sharedPreferencesManager.getIdToken();
+    final tasks = await getTasks(idToken!);
+    if (!mounted) return;
     setState(() {
-      _tasks = ['タスク1', 'タスク2', 'タスク3'];
+      _tasks = tasks;
     });
   }
 
@@ -33,7 +38,8 @@ class _TaskListPageState extends State<TaskListPage> {
         backgroundColor: Colors.transparent,
       ),
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView( // SingleChildScrollViewで囲む
+      body: SingleChildScrollView(
+        // SingleChildScrollViewで囲む
         padding: const EdgeInsets.all(16.0),
         child: Container(
           padding: const EdgeInsets.all(24),
@@ -45,26 +51,30 @@ class _TaskListPageState extends State<TaskListPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'タスク',
+              Text(
+                _tasks.isEmpty ? 'タスクはありません' : 'タスク',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              _tasks.isEmpty // タスクが空の場合の処理
-                  ? const Center(child: Text('タスクはありません'))
-                  : ListView.builder( // ListView.builderでタスクを表示
-                shrinkWrap: true, // これがないとエラーが出る可能性あり
-                physics: const NeverScrollableScrollPhysics(), // これがないとエラーが出る可能性あり
-                itemCount: _tasks.length,
-                itemBuilder: (context, index) {
-                  final task = _tasks[index];
-                  return Card( // Cardでタスクを囲むと見やすい
-                    child: ListTile(
-                      title: Text(task),
+              _tasks.isEmpty
+                  ? Text("AIからの質問に答えて、タスクを考えてもらいましょう。")
+                  : ListView.builder(
+                      // ListView.builderでタスクを表示
+                      shrinkWrap: true,
+                      // これがないとエラーが出る可能性あり
+                      physics: const NeverScrollableScrollPhysics(),
+                      // これがないとエラーが出る可能性あり
+                      itemCount: _tasks.length,
+                      itemBuilder: (context, index) {
+                        final task = _tasks[index];
+                        return Card(
+                          // Cardでタスクを囲むと見やすい
+                          child: ListTile(
+                            title: Text(task),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ],
           ),
         ),
