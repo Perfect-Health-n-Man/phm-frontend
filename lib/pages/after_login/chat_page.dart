@@ -3,9 +3,7 @@ import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:phm_frontend/main.dart';
 import 'package:phm_frontend/models/message_model.dart' as types;
-import 'package:phm_frontend/utils/to_message.dart';
 import '../../service/chat_service.dart';
-import '../../widget/custom_message_builder.dart';
 import '../before_login/login_page.dart';
 
 class ChatPage extends StatefulWidget {
@@ -27,9 +25,8 @@ final userAI = types.User(
 
 class ChatPageState extends State<ChatPage> {
   final List<types.Message> _messages = [];
-
-  bool _isLoading = false;
-  bool _isAIThinking = false;
+  bool loading = false;
+  bool end = false;
 
   userMessage(String createdAt, int index, String message) {
     return types.TextMessage(
@@ -57,15 +54,21 @@ class ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    _loadInitialHistory();
+    _loadHistory();
   }
 
-  Future<void> _loadInitialHistory() async {
+  Future<void> _loadHistory() async {
+    if(loading || end) return;
+    setState(() {
+      loading = true;
+    });
     final idToken = sharedPreferencesManager.getIdToken();
+    final page = _messages.length ~/ ChatService.getChatHistoryNum + 1;
+    print(page);
     if (idToken == null) return;
     List<types.Chat>? chats;
     try {
-      chats = await chatService.getNextHistory(idToken);
+      chats = await chatService.getNextHistory(idToken, page);
     } catch (e) {
       if (!mounted) return;
       Navigator.push(
@@ -76,40 +79,17 @@ class ChatPageState extends State<ChatPage> {
         const SnackBar(content: Text('認証情報の有効期限が切れたため、再度ログインしてください。')),
       );
     }
+    if (!mounted) return;
+    // get chat index max
     if (chats == null) return;
-    final reversed = chats.reversed.toList();
-    if (!mounted) return;
+    if(chats.length < 10) end = true;
+    final max = chats.map((chat) => chat.index).reduce((a, b) => a > b ? a : b);
 
     setState(() {
-      for (var chat in reversed) {
-        if (chat.type == "ai") {
-          _addMessageToStart(
-              aiMessage(chat.dateTime, chat.index, chat.message));
-        } else {
-          _addMessageToStart(
-              userMessage(chat.dateTime, chat.index, chat.message));
-        }
-      }
-    });
-  }
-
-  Future<void> _loadPreviousHistory() async {
-    if (_isLoading) {
-      return;
-    }
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final idToken = sharedPreferencesManager.getIdToken();
-      final chats = await chatService.getNextHistory(idToken!);
-      final reversed = chats?.reversed.toList();
-      if (!mounted) return;
-
-      setState(() {
-        reversed?.forEach((chat) {
+        for (var chat in chats!) {
+          print("max: $max");
+          print("index: ${chat.index}");
+          if(chat.index > max) continue;
           if (chat.type == "ai") {
             _addMessageToEnd(
                 aiMessage(chat.dateTime, chat.index, chat.message));
@@ -117,13 +97,9 @@ class ChatPageState extends State<ChatPage> {
             _addMessageToEnd(
                 userMessage(chat.dateTime, chat.index, chat.message));
           }
-        });
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+        }
+        loading = false;
+    });
   }
 
   @override
@@ -132,15 +108,10 @@ class ChatPageState extends State<ChatPage> {
         messages: _messages,
         onSendPressed: _handleSendPressed,
         showUserNames: true,
-        onEndReached: _loadPreviousHistory,
-        customMessageBuilder: (types.CustomMessage customMessage,
-                {required int messageWidth}) =>
-            customMessageBuilder(customMessage,
-                messageWidth: messageWidth,
-                onPressedAnswer: onPressedAnswerButton),
+        onEndReached: _loadHistory,
         theme: DefaultChatTheme(
-          primaryColor: Theme.of(context).colorScheme.primary, // メッセージの背景色の変更
-          userAvatarNameColors: [Colors.green], // ユーザー名の文字色の変更
+          primaryColor: Theme.of(context).colorScheme.primary,
+          userAvatarNameColors: [Colors.green],
           backgroundColor: Colors.transparent,
           inputBackgroundColor: Theme.of(context).colorScheme.secondary,
         ),
@@ -161,41 +132,12 @@ class ChatPageState extends State<ChatPage> {
     });
   }
 
-  Future<void> onPressedAnswerButton(
-      List<String> questions, List<String> answers) async {
-    final idToken = sharedPreferencesManager.getIdToken();
-    if (idToken == null) return;
-    _messages.removeAt(0);
-    _addMessageToStart(aiMessage(DateTime.now().toString(),
-        _messages.length + 1, listToMessage(questions)));
-    _addMessageToStart(userMessage(DateTime.now().toString(),
-        _messages.length + 1, listToMessage(answers)));
-    _addMessageToStart(
-        aiThinking(DateTime.now().toString(), _messages.length + 1));
-    try {
-      final response =
-          await chatService.sendFormAnswer(idToken, questions, answers);
-      _messages.removeAt(0);
-      _addMessageToStart(aiMessage(
-          DateTime.now().toString(), _messages.length + 1, response.answer));
-      final forms = response.forms;
-      if (forms != null) {
-        _addMessageToStart(aiForm(
-            DateTime.now().toString(), _messages.length + 1, forms.questions));
-      }
-    } finally {
-      setState(() {
-        _isAIThinking = false;
-      });
-    }
-  }
-
   Future<void> _handleSendPressed(types.PartialText message) async {
     final idToken = sharedPreferencesManager.getIdToken();
-
     setState(() {
-      _isAIThinking = true;
+      loading = true;
     });
+
     _addMessageToStart(userMessage(
         DateTime.now().toString(), _messages.length + 1, message.text));
     _addMessageToStart(
@@ -205,21 +147,20 @@ class ChatPageState extends State<ChatPage> {
       _messages.removeAt(0);
       _addMessageToStart(aiMessage(
           DateTime.now().toString(), _messages.length + 1, response.answer));
-      final forms = response.forms;
-      if (forms != null) {
-        _addMessageToStart(aiForm(
-            DateTime.now().toString(), _messages.length + 1, forms.questions));
-      }
     } catch (e) {
       _messages.removeAt(0);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('エラーが発生しました。再度お試しください。')),
       );
-    } finally {
       setState(() {
-        _isAIThinking = false;
+        loading = false;
       });
+
     }
+    setState(() {
+      loading = false;
+    });
+
   }
 }

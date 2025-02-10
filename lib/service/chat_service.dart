@@ -5,11 +5,8 @@ import '../models/message_model.dart';
 
 class ChatService {
   static const getChatHistoryNum = 10;
-  int page = 1;
-  int nowIndex = 9;
 
   Future<ChatResponse> sendChat(String idToken,String message) async{
-    nowIndex++;
     final res = await postChat(idToken, message);
     if(res["answer"] != null || res["form"] != null) {
       return ChatResponse.fromJson(res);
@@ -23,14 +20,12 @@ class ChatService {
     return await sendChat(idToken, answerMessage);
   }
 
-  Future<List<Chat>?> getNextHistory(String idToken) async{
+  Future<List<Chat>?> getNextHistory(String idToken, int page) async{
     final chats = await getChats(idToken, page);
 
     if(chats == null) {
       return null;
     }
-    page++;
-    nowIndex += getChatHistoryNum;
     return chats;
   }
 }
